@@ -29,14 +29,21 @@ const products=[
 	}
 ]
 
+const existe=function(req,res,next){
+	if(req.params.id >= products.length || isNaN(req.params.id)){
+		return res.json({error:'Error producto no encontrado'})
+	}
+	next()
+}
+
 router.get('/',(req,res)=>{
     res.json({products:products})
 })
 
-router.get('/:id',(req,res)=>{
+router.get('/:id',existe,(req,res)=>{
 	const idt=req.params.id
 	let resultado=products.find(x => x.id == idt)
-	resultado === undefined || resultado === null ? res.send({error:'Error ID no encontrado'}): res.json({products:resultado});
+	res.json({products:resultado});
 })
 
 router.post('/',(req,res)=>{
@@ -46,39 +53,33 @@ router.post('/',(req,res)=>{
 		let newId=countId;
 		producto.id=newId;
 		products.push(producto)
-		res.json({mensaje:'id', newId})
+		res.json({mensaje:'Producto Guardado',id: newId})
 	}else{
 		let last_element = products[products.length - 1];
 		let newId= last_element.id + countId;
 		producto.id=newId;
 		products.push(producto);
-		res.json({mensaje: 'pepe', newId})
+		res.json({mensaje: 'Producto Guardado',id: newId})
 	}
 })
 
-router.put('/:id',(req,res)=>{
-    const idt=parseInt(req.params.id)
-	console.log(idt)
-	let resultado=products.find(x => x.id == idt)
-	console.log(resultado)
-	if(resultado === undefined){
-		res.json({error:'Error ID no encontrado'})
-	}else{
-		products[idt]["title"]=req.body.title;
-		products[idt]["price"]=req.body.price;
-		res.json(products)
-	}
+router.put('/:id',existe,(req,res)=>{
+    let idt=parseInt(req.params.id)
+	let newContent=req.body;
+	products.splice(idt-1,1,newContent)
+	res.json({mensaje: products})
+	// let resultado=products.find(x => x.id === idt)
+	// console.log(resultado)
+	// products[idt]["title"]=req.body.title;
+	// products[idt]["price"]=req.body.price;
+	// res.json(products)
 })
 
-router.delete('/:id',(req,res)=>{
+router.delete('/:id',existe,(req,res)=>{
 	const idt=parseInt(req.params.id)
 	let resultado=products.find(x => x.id == idt);
-	if(resultado === undefined){
-		res.json({error:'Error ID no encontrado'})
-	}else{
-		let newProducts=products.filter((item) => item != resultado);
-		res.json({newProducts})
-	}
+	let newProducts=products.filter((item) => item != resultado);
+	res.json({mensaje: newProducts})
 })
 
 module.exports=router
